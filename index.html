@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LokaServe - Jasa Lokal Terpercaya</title>
-  <script src="https://minepi.com"></script>
   <style>
     body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; color: #333; }
     .container { max-width: 480px; margin: auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
@@ -21,14 +20,14 @@
 <body>
 
 <div class="container">
-  <h1>LokaServe v3</h1>
+  <h1>LokaServe v4</h1>
   <p class="subtitle">Direktori Jasa Harian & Perbaikan Rumah</p>
 
   <div id="auth-section">
     <button class="btn" onclick="loginPi()">Masuk dengan Akun Pi</button>
   </div>
 
-  <div id="user-info" class="status">Memeriksa sistem Pi SDK...</div>
+  <div id="user-info" class="status">Memuat sistem Pi SDK...</div>
 
   <div class="card">
     <h3>Servis & Cuci AC Panggilan</h3>
@@ -44,16 +43,31 @@
 </div>
 
 <script>
-  const BACKEND_URL = "https://google.com";
   const statusBox = document.getElementById('user-info');
   let currentUser = null;
 
-  if (window.Pi) {
-    window.Pi.init({ version: "2.0", sandbox: true });
-    statusBox.innerText = "Sistem Pi siap. Silakan tekan tombol Masuk dengan Akun Pi.";
-  } else {
-    statusBox.innerText = "Pi SDK belum terdeteksi. Pastikan dibuka lewat Pi Browser.";
-  }
+  // Merakit URL secara terpisah agar tidak dipotong otomatis oleh browser iPhone
+  const proto = "https:" + "//";
+  const sdkDomain = ["sdk", "minepi", "com"].join(".");
+  const gasDomain = ["script", "google", "com"].join(".");
+  const deploymentId = "AKfycbwRvgS4-QIjB9dB9aYB8HY39Mvgw4uNriW5YiGA_69nHhgrJY3O0xkJYNXdw5SU2ypvdg";
+  const BACKEND_URL = proto + gasDomain + "/macros/s/" + deploymentId + "/exec";
+
+  // Memuat Pi SDK
+  const sdkScript = document.createElement('script');
+  sdkScript.src = proto + sdkDomain + "/pi-sdk.js";
+  sdkScript.onload = function() {
+    if (window.Pi) {
+      window.Pi.init({ version: "2.0", sandbox: true });
+      statusBox.innerText = "Sistem Pi siap! Silakan tekan tombol Masuk dengan Akun Pi.";
+    } else {
+      statusBox.innerText = "Objek Pi tidak ditemukan. Pastikan dibuka lewat Pi Browser.";
+    }
+  };
+  sdkScript.onerror = function() {
+    statusBox.innerText = "Gagal memuat Pi SDK. Periksa koneksi internet Anda.";
+  };
+  document.head.appendChild(sdkScript);
 
   async function hubungiBackend(payloadData) {
     const response = await fetch(BACKEND_URL, {
@@ -66,7 +80,7 @@
 
   async function loginPi() {
     if (!window.Pi) {
-      statusBox.innerText = "Gagal: Pi SDK tidak ditemukan. Buka tautan ini di Pi Browser.";
+      statusBox.innerText = "Tunggu sebentar, Pi SDK sedang dimuat atau buka melalui Pi Browser.";
       return;
     }
 

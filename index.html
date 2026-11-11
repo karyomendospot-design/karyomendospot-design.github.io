@@ -52,12 +52,10 @@
   const deploymentId = "AKfycbwRvgS4-QIjB9dB9aYB8HY39Mvgw4uNriW5YiGA_69nHhgrJY3O0xkJYNXdw5SU2ypvdg";
   const BACKEND_URL = proto + gasDomain + "/macros/s/" + deploymentId + "/exec";
 
-  // Memuat Pi SDK
   const sdkScript = document.createElement('script');
   sdkScript.src = proto + sdkDomain + "/pi-sdk.js";
   sdkScript.onload = function() {
     if (window.Pi) {
-      // Gunakan sandbox: false untuk akses langsung lewat Pi Browser (Testnet/Mainnet)
       window.Pi.init({ version: "2.0", sandbox: false });
       statusBox.innerText = "Sistem Pi siap! Silakan tekan tombol Masuk dengan Akun Pi.";
     } else {
@@ -73,16 +71,15 @@
     try {
       const response = await fetch(BACKEND_URL, {
         method: "POST",
+        redirect: "follow",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payloadData)
       });
-      const result = await response.json();
-      if (result.error) {
-        statusBox.innerText = "Peringatan Server: " + result.error;
-      }
-      return result;
+      const text = await response.text();
+      statusBox.innerText = "Respon Server: " + text;
+      return JSON.parse(text);
     } catch (err) {
-      statusBox.innerText = "Gagal terhubung ke backend: " + err.message;
+      statusBox.innerText = "Error Koneksi Backend: " + err.message;
       throw err;
     }
   }
@@ -106,15 +103,18 @@
     }
   }
 
-  function onIncompletePaymentFound(payment) {
-    statusBox.innerText = "Menyelesaikan transaksi tertunda sebelumnya...";
+  async function onIncompletePaymentFound(payment) {
+    statusBox.innerText = "Menemukan transaksi tertunda (" + payment.identifier + "), memproses...";
     if (payment.transaction && payment.transaction.txid) {
-      hubungiBackend({
+      await hubungiBackend({
         action: "complete",
         paymentId: payment.identifier,
         txid: payment.transaction.txid
-      }).then(() => {
-        statusBox.innerText = "Transaksi tertunda berhasil diselesaikan! Silakan coba booking lagi.";
+      });
+    } else {
+      await hubungiBackend({
+        action: "approve",
+        paymentId: payment.identifier
       });
     }
   }
@@ -132,7 +132,7 @@
       metadata: { service: namaJasa }
     }, {
       onReadyForServerApproval: async function(paymentId) {
-        statusBox.innerText = "Memproses persetujuan server...";
+        statusBox.innerText = "Mengirim persetujuan ke server untuk ID: " + paymentId;
         await hubungiBackend({ action: "approve", paymentId: paymentId });
       },
       onReadyForServerCompletion: async function(paymentId, txid) {
@@ -144,7 +144,7 @@
         statusBox.innerText = "Pembayaran dibatalkan oleh pengguna.";
       },
       onError: function(error, payment) {
-        statusBox.innerText = "Error pembayaran: " + error.message;
+        statusBox.innerText = "Error Pi SDK: " + error.message;
       }
     });
   }

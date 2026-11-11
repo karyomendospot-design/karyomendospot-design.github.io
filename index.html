@@ -1,0 +1,124 @@
+ <!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LokaServe - Jasa Lokal Terpercaya</title>
+  <script src="https://minepi.com"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; color: #333; }
+    .container { max-width: 480px; margin: auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h1 { color: #593B8B; font-size: 22px; margin-bottom: 5px; }
+    p.subtitle { color: #666; font-size: 14px; margin-top: 0; }
+    .btn { background-color: #593B8B; color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 15px; font-weight: bold; margin-top: 10px; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-top: 15px; }
+    .card h3 { margin: 0 0 5px 0; font-size: 16px; }
+    .card p { margin: 0 0 10px 0; font-size: 13px; color: #555; }
+    .status { background: #eef6ff; padding: 10px; border-radius: 6px; font-size: 13px; margin-top: 15px; color: #004085; word-break: break-all; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>LokaServe</h1>
+  <p class="subtitle">Direktori Jasa Harian & Perbaikan Rumah</p>
+
+  <div id="auth-section">
+    <button class="btn" onclick="loginPi()">Masuk dengan Akun Pi</button>
+  </div>
+
+  <div id="user-info" class="status" style="display:none;"></div>
+
+  <div class="card">
+    <h3>Servis & Cuci AC Panggilan</h3>
+    <p>Pembersihan unit AC dan pengecekan freon area sekitar.</p>
+    <button class="btn" onclick="pesanJasa('Servis AC', 0.5)">Booking DP (0.5 Pi)</button>
+  </div>
+
+  <div class="card">
+    <h3>Jasa Tukang & Perbaikan Ringan</h3>
+    <p>Perbaikan pipa bocor, kelistrikan dasar, dan cat dinding.</p>
+    <button class="btn" onclick="pesanJasa('Tukang Harian', 1.0)">Booking DP (1.0 Pi)</button>
+  </div>
+</div>
+
+<script>
+  // GANTI TEKS DI BAWAH INI DENGAN URL GOOGLE APPS SCRIPT ANDA
+  const BACKEND_URL = "TEMPEL_URL_GOOGLE_APPS_SCRIPT_ANDA_DI_SINI";
+
+  const Pi = window.Pi;
+  Pi.init({ version: "2.0", sandbox: true });
+
+  let currentUser = null;
+
+  // Fungsi mengirim perintah ke Backend Google Apps Script
+  async function hubungiBackend(payloadData) {
+    const response = await fetch(BACKEND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payloadData)
+    });
+    return await response.json();
+  }
+
+  async function loginPi() {
+    try {
+      const scopes = ['username', 'payments'];
+      const authResult = await Pi.authenticate(scopes, onIncompletePaymentFound);
+      currentUser = authResult.user;
+      
+      document.getElementById('auth-section').style.display = 'none';
+      const userInfo = document.getElementById('user-info');
+      userInfo.style.display = 'block';
+      userInfo.innerText = "Halo, @" + currentUser.username + "! Akun terhubung.";
+    } catch (err) {
+      alert("Gagal login: " + err.message);
+    }
+  }
+
+  function onIncompletePaymentFound(payment) {
+    // Otomatis menyelesaikan transaksi lama yang sempat tertunda
+    if (payment.transaction && payment.transaction.txid) {
+      hubungiBackend({
+        action: "complete",
+        paymentId: payment.identifier,
+        txid: payment.transaction.txid
+      });
+    }
+  }
+
+  function pesanJasa(namaJasa, jumlahPi) {
+    if (!currentUser) {
+      alert("Silakan klik 'Masuk dengan Akun Pi' terlebih dahulu.");
+      return;
+    }
+
+    const statusBox = document.getElementById('user-info');
+
+    Pi.createPayment({
+      amount: jumlahPi,
+      memo: "DP Pemesanan: " + namaJasa,
+      metadata: { service: namaJasa }
+    }, {
+      onReadyForServerApproval: async function(paymentId) {
+        statusBox.innerText = "Memproses persetujuan server...";
+        await hubungiBackend({ action: "approve", paymentId: paymentId });
+      },
+      onReadyForServerCompletion: async function(paymentId, txid) {
+        statusBox.innerText = "Menyelesaikan transaksi blockchain...";
+        await hubungiBackend({ action: "complete", paymentId: paymentId, txid: txid });
+        statusBox.innerText = "Pembayaran DP " + namaJasa + " Berhasil! TXID: " + txid;
+        alert("Sukses! Pembayaran Test-Pi telah tercatat.");
+      },
+      onCancel: function(paymentId) {
+        statusBox.innerText = "Pembayaran dibatalkan oleh pengguna.";
+      },
+      onError: function(error, payment) {
+        statusBox.innerText = "Error: " + error.message;
+      }
+    });
+  }
+</script>
+
+</body>
+</html>

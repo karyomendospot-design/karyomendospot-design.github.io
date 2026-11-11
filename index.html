@@ -46,7 +46,6 @@
   const statusBox = document.getElementById('user-info');
   let currentUser = null;
 
-  // Merakit URL secara terpisah agar tidak dipotong otomatis oleh browser iPhone
   const proto = "https:" + "//";
   const sdkDomain = ["sdk", "minepi", "com"].join(".");
   const gasDomain = ["script", "google", "com"].join(".");
@@ -58,7 +57,8 @@
   sdkScript.src = proto + sdkDomain + "/pi-sdk.js";
   sdkScript.onload = function() {
     if (window.Pi) {
-      window.Pi.init({ version: "2.0", sandbox: true });
+      // Gunakan sandbox: false untuk akses langsung lewat Pi Browser (Testnet/Mainnet)
+      window.Pi.init({ version: "2.0", sandbox: false });
       statusBox.innerText = "Sistem Pi siap! Silakan tekan tombol Masuk dengan Akun Pi.";
     } else {
       statusBox.innerText = "Objek Pi tidak ditemukan. Pastikan dibuka lewat Pi Browser.";
@@ -70,12 +70,21 @@
   document.head.appendChild(sdkScript);
 
   async function hubungiBackend(payloadData) {
-    const response = await fetch(BACKEND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payloadData)
-    });
-    return await response.json();
+    try {
+      const response = await fetch(BACKEND_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payloadData)
+      });
+      const result = await response.json();
+      if (result.error) {
+        statusBox.innerText = "Peringatan Server: " + result.error;
+      }
+      return result;
+    } catch (err) {
+      statusBox.innerText = "Gagal terhubung ke backend: " + err.message;
+      throw err;
+    }
   }
 
   async function loginPi() {
@@ -98,11 +107,14 @@
   }
 
   function onIncompletePaymentFound(payment) {
+    statusBox.innerText = "Menyelesaikan transaksi tertunda sebelumnya...";
     if (payment.transaction && payment.transaction.txid) {
       hubungiBackend({
         action: "complete",
         paymentId: payment.identifier,
         txid: payment.transaction.txid
+      }).then(() => {
+        statusBox.innerText = "Transaksi tertunda berhasil diselesaikan! Silakan coba booking lagi.";
       });
     }
   }

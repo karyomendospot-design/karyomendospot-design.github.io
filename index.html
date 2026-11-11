@@ -4,12 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LokaServe - Jasa Lokal Terpercaya</title>
+  <script src="https://minepi.com"></script>
   <style>
     body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; color: #333; }
     .container { max-width: 480px; margin: auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     h1 { color: #593B8B; font-size: 22px; margin-bottom: 5px; }
     p.subtitle { color: #666; font-size: 14px; margin-top: 0; }
     .btn { background-color: #593B8B; color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 15px; font-weight: bold; margin-top: 10px; }
+    .btn:active { background-color: #452c6e; }
     .card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-top: 15px; }
     .card h3 { margin: 0 0 5px 0; font-size: 16px; }
     .card p { margin: 0 0 10px 0; font-size: 13px; color: #555; }
@@ -19,14 +21,14 @@
 <body>
 
 <div class="container">
-  <h1>LokaServe v2</h1>
+  <h1>LokaServe v3</h1>
   <p class="subtitle">Direktori Jasa Harian & Perbaikan Rumah</p>
 
   <div id="auth-section">
     <button class="btn" onclick="loginPi()">Masuk dengan Akun Pi</button>
   </div>
 
-  <div id="user-info" class="status" style="display:none;"></div>
+  <div id="user-info" class="status">Memeriksa sistem Pi SDK...</div>
 
   <div class="card">
     <h3>Servis & Cuci AC Panggilan</h3>
@@ -42,19 +44,16 @@
 </div>
 
 <script>
-  const sdkScript = document.createElement('script');
-  sdkScript.src = "https://" + ["sdk", "minepi", "com"].join(".") + "/pi-sdk.js";
-  sdkScript.onload = function() {
-    if (window.Pi) {
-      window.Pi.init({ version: "2.0", sandbox: true });
-    }
-  };
-  document.head.appendChild(sdkScript);
-
-  const deploymentId = "AKfycbwRvgS4-QIjB9dB9aYB8HY39Mvgw4uNriW5YiGA_69nHhgrJY3O0xkJYNXdw5SU2ypvdg";
-  const BACKEND_URL = "https://" + ["script", "google", "com"].join(".") + "/macros/s/" + deploymentId + "/exec";
-
+  const BACKEND_URL = "https://google.com";
+  const statusBox = document.getElementById('user-info');
   let currentUser = null;
+
+  if (window.Pi) {
+    window.Pi.init({ version: "2.0", sandbox: true });
+    statusBox.innerText = "Sistem Pi siap. Silakan tekan tombol Masuk dengan Akun Pi.";
+  } else {
+    statusBox.innerText = "Pi SDK belum terdeteksi. Pastikan dibuka lewat Pi Browser.";
+  }
 
   async function hubungiBackend(payloadData) {
     const response = await fetch(BACKEND_URL, {
@@ -67,21 +66,20 @@
 
   async function loginPi() {
     if (!window.Pi) {
-      alert("SDK sedang dimuat, tunggu 2 detik lalu tekan lagi.");
+      statusBox.innerText = "Gagal: Pi SDK tidak ditemukan. Buka tautan ini di Pi Browser.";
       return;
     }
 
+    statusBox.innerText = "Meminta izin akses ke akun Pi Anda...";
     try {
       const scopes = ['username', 'payments'];
       const authResult = await window.Pi.authenticate(scopes, onIncompletePaymentFound);
       currentUser = authResult.user;
       
       document.getElementById('auth-section').style.display = 'none';
-      const userInfo = document.getElementById('user-info');
-      userInfo.style.display = 'block';
-      userInfo.innerText = "Halo, @" + currentUser.username + "! Akun terhubung.";
+      statusBox.innerText = "Halo, @" + currentUser.username + "! Akun terhubung.";
     } catch (err) {
-      alert("Gagal login: " + err.message);
+      statusBox.innerText = "Gagal login: " + err.message;
     }
   }
 
@@ -97,12 +95,11 @@
 
   function pesanJasa(namaJasa, jumlahPi) {
     if (!currentUser) {
-      alert("Silakan klik 'Masuk dengan Akun Pi' terlebih dahulu.");
+      statusBox.innerText = "Silakan tekan 'Masuk dengan Akun Pi' terlebih dahulu.";
       return;
     }
 
-    const statusBox = document.getElementById('user-info');
-
+    statusBox.innerText = "Membuka jendela pembayaran Pi Wallet...";
     window.Pi.createPayment({
       amount: jumlahPi,
       memo: "DP Pemesanan: " + namaJasa,
@@ -116,13 +113,12 @@
         statusBox.innerText = "Menyelesaikan transaksi blockchain...";
         await hubungiBackend({ action: "complete", paymentId: paymentId, txid: txid });
         statusBox.innerText = "Pembayaran DP " + namaJasa + " Berhasil! TXID: " + txid;
-        alert("Sukses! Pembayaran Test-Pi telah tercatat.");
       },
       onCancel: function(paymentId) {
         statusBox.innerText = "Pembayaran dibatalkan oleh pengguna.";
       },
       onError: function(error, payment) {
-        statusBox.innerText = "Error: " + error.message;
+        statusBox.innerText = "Error pembayaran: " + error.message;
       }
     });
   }

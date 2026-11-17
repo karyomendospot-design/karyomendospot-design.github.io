@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LokaServe - Direktori Jasa Lokal Pi Network</title>
+  <script src="https://minepi.com"></script>
   <style>
     * { box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f4f9; margin: 0; padding: 16px; color: #333; }
@@ -52,7 +53,7 @@
 
 <div class="container">
   <div class="header">
-    <h1>LokaServe v4.2</h1>
+    <h1>LokaServe v4.3</h1>
     <span class="badge-testnet">Pi Testnet</span>
   </div>
   <p class="subtitle">Direktori Jasa Harian & Perbaikan Rumah Terpercaya</p>
@@ -61,7 +62,7 @@
     <button class="btn" onclick="loginPi()">Masuk dengan Akun Pi</button>
   </div>
 
-  <div id="user-info" class="status">Menghubungkan ke server Pi...</div>
+  <div id="user-info" class="status">Menyiapkan sistem Pi SDK...</div>
 
   <div class="tabs">
     <button class="tab-btn active" id="tab-layanan" onclick="gantiTab('layanan')">Daftar Jasa</button>
@@ -114,74 +115,66 @@
 </div>
 
 <script>
-  const statusBox = document.getElementById('user-info');
-  let currentUser = null;
-  let jasaDipilih = null;
-  let sdkSiap = false;
+  window.onerror = function(msg, url, line) {
+    var box = document.getElementById('user-info');
+    if (box) box.innerText = "Error Kode (Baris " + line + "): " + msg;
+  };
 
-  const BACKEND_URL = "https://google.com";
+  var statusBox = document.getElementById('user-info');
+  var currentUser = null;
+  var jasaDipilih = null;
 
-  const daftarJasa = [
+  var proto = "https:" + "//";
+  var gasHost = ["script", "google", "com"].join(".");
+  var depId = "AKfycbwRvgS4-QIjB9dB9aYB8HY39Mvgw4uNriW5YiGA_69nHhgrJY3O0xkJYNXdw5SU2ypvdg";
+  var BACKEND_URL = proto + gasHost + "/macros/s/" + depId + "/exec";
+
+  var daftarJasa = [
     { id: 1, nama: "Servis & Cuci AC Panggilan", kategori: "Elektronik", mitra: "Teknisi Sejuk Mandiri", rating: "4.9 (124 ulasan)", deskripsi: "Pembersihan unit indoor/outdoor, pengecekan tekanan freon, dan perbaikan kebocoran air.", dp: 0.5 },
     { id: 2, nama: "Jasa Tukang & Perbaikan Ringan", kategori: "Bangunan", mitra: "Karya Tukang Lokal", rating: "4.8 (89 ulasan)", deskripsi: "Perbaikan pipa bocor, instalasi saklar/lampu dasar, perbaikan atap, dan pengecatan dinding.", dp: 1.0 },
     { id: 3, nama: "Deep Cleaning Rumah & Kos", kategori: "Kebersihan", mitra: "BersihKilat Homecare", rating: "4.9 (67 ulasan)", deskripsi: "Pembersihan menyeluruh kamar mandi, dapur, kaca jendela, dan lantai bebas kerak.", dp: 0.5 },
     { id: 4, nama: "Perbaikan Mesin Cuci & Kulkas", kategori: "Elektronik", mitra: "Adi Jaya Elektronik", rating: "4.7 (52 ulasan)", deskripsi: "Pengecekan modul, penggantian sparepart, dan perbaikan sistem pendingin di tempat.", dp: 0.5 }
   ];
 
-  // Tampilkan daftar jasa terlebih dahulu agar halaman langsung terisi
-  renderJasa('Semua');
-  updateOrderCount();
-
-  // Muat Pi SDK dengan parameter anti-cache
-  const scriptEl = document.createElement('script');
-  scriptEl.src = "https://minepi.com" + Date.now();
-  scriptEl.onload = function() {
-    if (typeof window.Pi !== 'undefined') {
-      try {
-        window.Pi.init({ version: "2.0", sandbox: false });
-        sdkSiap = true;
-        statusBox.innerText = "Sistem Pi siap! Tekan tombol 'Masuk dengan Akun Pi' di atas.";
-      } catch (e) {
-        statusBox.innerText = "Error inisialisasi Pi: " + e.message;
-      }
-    } else {
-      statusBox.innerText = "Objek Pi tidak ditemukan. Pastikan dibuka di Pi Browser.";
-    }
-  };
-  scriptEl.onerror = function() {
-    statusBox.innerText = "Gagal mengunduh Pi SDK. Periksa koneksi internet Anda.";
-  };
-  document.head.appendChild(scriptEl);
-
   function renderJasa(kategori) {
-    const container = document.getElementById('service-list');
+    var container = document.getElementById('service-list');
     container.innerHTML = "";
-    const filtered = kategori === 'Semua' ? daftarJasa : daftarJasa.filter(j => j.kategori === kategori);
-
-    filtered.forEach(jasa => {
-      container.innerHTML += `
-        <div class="card">
-          <div class="card-top">
-            <h3>${jasa.nama}</h3>
-            <span class="rating">★ ${jasa.rating}</span>
-          </div>
-          <div class="provider">Mitra: ${jasa.mitra}</div>
-          <p>${jasa.deskripsi}</p>
-          <div class="price-row">
-            <span>Biaya Booking (DP):</span>
-            <span class="price-tag">${jasa.dp} Test-Pi</span>
-          </div>
-          <button class="btn" onclick="bukaModal(${jasa.id})">Pesan Jasa (${jasa.dp} Pi)</button>
-        </div>
-      `;
-    });
+    for (var i = 0; i < daftarJasa.length; i++) {
+      var jasa = daftarJasa[i];
+      if (kategori !== 'Semua' && jasa.kategori !== kategori) continue;
+      container.innerHTML +=
+        '<div class="card">' +
+          '<div class="card-top">' +
+            '<h3>' + jasa.nama + '</h3>' +
+            '<span class="rating">★ ' + jasa.rating + '</span>' +
+          '</div>' +
+          '<div class="provider">Mitra: ' + jasa.mitra + '</div>' +
+          '<p>' + jasa.deskripsi + '</p>' +
+          '<div class="price-row">' +
+            '<span>Biaya Booking (DP):</span>' +
+            '<span class="price-tag">' + jasa.dp + ' Test-Pi</span>' +
+          '</div>' +
+          '<button class="btn" onclick="bukaModal(' + jasa.id + ')">Pesan Jasa (' + jasa.dp + ' Pi)</button>' +
+        '</div>';
+    }
   }
 
   function filterKategori(kategori, btnElement) {
-    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    var pills = document.querySelectorAll('.pill');
+    for (var i = 0; i < pills.length; i++) {
+      pills[i].classList.remove('active');
+    }
     btnElement.classList.add('active');
     renderJasa(kategori);
   }
 
   function gantiTab(tab) {
     document.getElementById('tab-layanan').classList.toggle('active', tab === 'layanan');
+    document.getElementById('tab-pesanan').classList.toggle('active', tab === 'pesanan');
+    document.getElementById('view-layanan').style.display = tab === 'layanan' ? 'block' : 'none';
+    document.getElementById('view-pesanan').style.display = tab === 'pesanan' ? 'block' : 'none';
+    if (tab === 'pesanan') renderRiwayat();
+  }
+
+  function bukaModal(idJasa) {
+    if (!currentUser) {

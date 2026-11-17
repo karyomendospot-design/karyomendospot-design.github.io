@@ -13,23 +13,20 @@
     .badge-testnet { background: #fff3cd; color: #856404; font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 6px; border: 1px solid #ffeeba; }
     p.subtitle { color: #666; font-size: 13px; margin: 0 0 14px 0; }
     
-    .btn { background-color: #593B8B; color: white; border: none; padding: 11px 16px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 14px; font-weight: bold; transition: 0.2s; }
+    .btn { background-color: #593B8B; color: white; border: none; padding: 11px 16px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 14px; font-weight: bold; }
     .btn:active { background-color: #452c6e; }
     .btn-outline { background-color: transparent; color: #593B8B; border: 1px solid #593B8B; margin-top: 8px; }
     
     .status { background: #eef6ff; padding: 10px 12px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px; color: #004085; word-break: break-word; border-left: 4px solid #007bff; }
     
-    /* Tabs */
     .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
     .tab-btn { flex: 1; padding: 10px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 8px; font-weight: bold; font-size: 13px; color: #555; cursor: pointer; }
     .tab-btn.active { background: #593B8B; color: #fff; border-color: #593B8B; }
     
-    /* Filter Pills */
     .filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; }
     .pill { padding: 6px 12px; border-radius: 20px; font-size: 12px; background: #eee; color: #444; border: none; cursor: pointer; white-space: nowrap; }
     .pill.active { background: #f3c623; color: #222; font-weight: bold; }
 
-    /* Service Cards */
     .card { border: 1px solid #e2e2e8; border-radius: 10px; padding: 14px; margin-bottom: 12px; background: #fafafa; }
     .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
     .card h3 { margin: 0 0 4px 0; font-size: 15px; color: #222; }
@@ -39,7 +36,6 @@
     .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; }
     .price-tag { font-weight: bold; color: #16a34a; }
 
-    /* Modal Form */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center; padding: 16px; }
     .modal-box { background: #fff; width: 100%; max-width: 420px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .modal-box h3 { margin-top: 0; color: #593B8B; font-size: 17px; }
@@ -47,7 +43,6 @@
     .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #444; }
     .form-group input, .form-group textarea { width: 100%; padding: 9px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px; font-family: inherit; }
     
-    /* History Card */
     .order-item { border: 1px solid #d1e7dd; background: #f8fffb; border-radius: 8px; padding: 12px; margin-bottom: 10px; font-size: 12.5px; }
     .order-status { display: inline-block; background: #198754; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: bold; margin-bottom: 6px; }
     .txid-text { font-family: monospace; font-size: 11px; color: #555; background: #eee; padding: 4px 6px; border-radius: 4px; display: block; margin-top: 6px; word-break: break-all; }
@@ -57,7 +52,7 @@
 
 <div class="container">
   <div class="header">
-    <h1>LokaServe</h1>
+    <h1>LokaServe v4.2</h1>
     <span class="badge-testnet">Pi Testnet</span>
   </div>
   <p class="subtitle">Direktori Jasa Harian & Perbaikan Rumah Terpercaya</p>
@@ -66,15 +61,13 @@
     <button class="btn" onclick="loginPi()">Masuk dengan Akun Pi</button>
   </div>
 
-  <div id="user-info" class="status">Memuat sistem Pi SDK...</div>
+  <div id="user-info" class="status">Menghubungkan ke server Pi...</div>
 
-  <!-- Navigasi Tab -->
   <div class="tabs">
     <button class="tab-btn active" id="tab-layanan" onclick="gantiTab('layanan')">Daftar Jasa</button>
     <button class="tab-btn" id="tab-pesanan" onclick="gantiTab('pesanan')">Pesanan Saya (<span id="order-count">0</span>)</button>
   </div>
 
-  <!-- Bagian 1: Daftar Jasa -->
   <div id="view-layanan">
     <div class="filters">
       <button class="pill active" onclick="filterKategori('Semua', this)">Semua</button>
@@ -86,7 +79,6 @@
     <div id="service-list"></div>
   </div>
 
-  <!-- Bagian 2: Riwayat Pesanan -->
   <div id="view-pesanan" style="display: none;">
     <div id="order-list">
       <p style="text-align: center; color: #777; font-size: 13px; padding: 20px 0;">Belum ada riwayat pesanan jasa.</p>
@@ -94,7 +86,6 @@
   </div>
 </div>
 
-<!-- Modal Form Pemesanan -->
 <div class="modal-overlay" id="booking-modal">
   <div class="modal-box">
     <h3 id="modal-title">Form Pemesanan Jasa</h3>
@@ -126,8 +117,10 @@
   const statusBox = document.getElementById('user-info');
   let currentUser = null;
   let jasaDipilih = null;
+  let sdkSiap = false;
 
-  // Data Katalog Jasa Lokal
+  const BACKEND_URL = "https://google.com";
+
   const daftarJasa = [
     { id: 1, nama: "Servis & Cuci AC Panggilan", kategori: "Elektronik", mitra: "Teknisi Sejuk Mandiri", rating: "4.9 (124 ulasan)", deskripsi: "Pembersihan unit indoor/outdoor, pengecekan tekanan freon, dan perbaikan kebocoran air.", dp: 0.5 },
     { id: 2, nama: "Jasa Tukang & Perbaikan Ringan", kategori: "Bangunan", mitra: "Karya Tukang Lokal", rating: "4.8 (89 ulasan)", deskripsi: "Perbaikan pipa bocor, instalasi saklar/lampu dasar, perbaikan atap, dan pengecatan dinding.", dp: 1.0 },
@@ -135,30 +128,31 @@
     { id: 4, nama: "Perbaikan Mesin Cuci & Kulkas", kategori: "Elektronik", mitra: "Adi Jaya Elektronik", rating: "4.7 (52 ulasan)", deskripsi: "Pengecekan modul, penggantian sparepart, dan perbaikan sistem pendingin di tempat.", dp: 0.5 }
   ];
 
-  // Konfigurasi URL Pi SDK & Backend Google Apps Script
-  const proto = "https:" + "//";
-  const sdkDomain = ["sdk", "minepi", "com"].join(".");
-  const gasDomain = ["script", "google", "com"].join(".");
-  const deploymentId = "AKfycbwRvgS4-QIjB9dB9aYB8HY39Mvgw4uNriW5YiGA_69nHhgrJY3O0xkJYNXdw5SU2ypvdg";
-  const BACKEND_URL = proto + gasDomain + "/macros/s/" + deploymentId + "/exec";
+  // Tampilkan daftar jasa terlebih dahulu agar halaman langsung terisi
+  renderJasa('Semua');
+  updateOrderCount();
 
-  // Memuat Pi SDK
-  const sdkScript = document.createElement('script');
-  sdkScript.src = proto + sdkDomain + "/pi-sdk.js";
-  sdkScript.onload = function() {
-    if (window.Pi) {
-      window.Pi.init({ version: "2.0", sandbox: false });
-      statusBox.innerText = "Sistem Pi siap! Silakan tekan tombol Masuk dengan Akun Pi.";
+  // Muat Pi SDK dengan parameter anti-cache
+  const scriptEl = document.createElement('script');
+  scriptEl.src = "https://minepi.com" + Date.now();
+  scriptEl.onload = function() {
+    if (typeof window.Pi !== 'undefined') {
+      try {
+        window.Pi.init({ version: "2.0", sandbox: false });
+        sdkSiap = true;
+        statusBox.innerText = "Sistem Pi siap! Tekan tombol 'Masuk dengan Akun Pi' di atas.";
+      } catch (e) {
+        statusBox.innerText = "Error inisialisasi Pi: " + e.message;
+      }
     } else {
-      statusBox.innerText = "Objek Pi tidak ditemukan. Pastikan dibuka lewat Pi Browser.";
+      statusBox.innerText = "Objek Pi tidak ditemukan. Pastikan dibuka di Pi Browser.";
     }
   };
-  sdkScript.onerror = function() {
-    statusBox.innerText = "Gagal memuat Pi SDK. Periksa koneksi internet Anda.";
+  scriptEl.onerror = function() {
+    statusBox.innerText = "Gagal mengunduh Pi SDK. Periksa koneksi internet Anda.";
   };
-  document.head.appendChild(sdkScript);
+  document.head.appendChild(scriptEl);
 
-  // Render Daftar Jasa Awal
   function renderJasa(kategori) {
     const container = document.getElementById('service-list');
     container.innerHTML = "";
@@ -185,3 +179,9 @@
 
   function filterKategori(kategori, btnElement) {
     document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    btnElement.classList.add('active');
+    renderJasa(kategori);
+  }
+
+  function gantiTab(tab) {
+    document.getElementById('tab-layanan').classList.toggle('active', tab === 'layanan');

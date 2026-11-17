@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LokaServe v4.7</title>
-  <script src="https://minepi.com"></script>
-
+  <title>LokaServe v4.8</title>
+  <style>
     * { box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: #f4f4f9; margin: 0; padding: 16px; color: #333; }
     .container { max-width: 480px; margin: auto; background: #fff; padding: 20px; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
@@ -36,7 +35,7 @@
 
 <div class="container">
   <div class="header">
-    <h1>LokaServe v4.7</h1>
+    <h1>LokaServe v4.8</h1>
     <span class="badge">Pi Testnet</span>
   </div>
   <p style="font-size:13px;color:#666;margin:0 0 12px 0;">Direktori Jasa Harian &amp; Perbaikan Rumah</p>
@@ -45,7 +44,7 @@
     <button class="btn" onclick="loginPi()">Masuk dengan Akun Pi</button>
   </div>
 
-  <div id="status-box" class="status">Memuat aplikasi...</div>
+  <div id="status-box" class="status">Menyiapkan sistem...</div>
 
   <div class="tabs">
     <button class="tab active" id="btn-tab-jasa" onclick="pilihTab('jasa')">Daftar Jasa</button>
@@ -112,16 +111,24 @@
   var userPi = null;
   var pilihJasa = {};
 
-  var URL_API = "https://google.com";
+  // URL disandikan dalam Base64 agar tidak dipotong oleh Safari iPhone
+  var URL_SDK = atob("aHR0cHM6Ly9zZGsubWluZXBpLmNvbS9waS1zZGsuanM=");
+  var URL_API = atob("aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J3UnZnUzQtUUlqQjlkQjlhWUI4SFkzOU12Z3c0dU5yaVc1WWlHQV82OW5IaGdySlkzTzB4a0pZTlhkdzVTVTJ5cHZkZy9leGVj");
 
-  window.onload = function() {
+  var sc = document.createElement('script');
+  sc.src = URL_SDK;
+  sc.onload = function() {
     if (window.Pi) {
       window.Pi.init({ version: "2.0", sandbox: false });
       box.innerText = "Sistem Pi siap! Silakan tekan Masuk dengan Akun Pi.";
     } else {
-      box.innerText = "Pi SDK tidak terdeteksi. Pastikan dibuka lewat Pi Browser.";
+      box.innerText = "Buka aplikasi ini melalui Pi Browser.";
     }
   };
+  sc.onerror = function() {
+    box.innerText = "Gagal mengunduh Pi SDK. Periksa koneksi internet Anda.";
+  };
+  document.head.appendChild(sc);
 
   function pilihTab(t) {
     document.getElementById('btn-tab-jasa').className = t === 'jasa' ? 'tab active' : 'tab';
@@ -218,16 +225,3 @@
         localStorage.setItem('ls_orders', JSON.stringify(list));
         document.getElementById('jml-order').innerText = list.length;
         box.innerText = "Pembayaran Berhasil! TXID: " + txid;
-        pilihTab('order');
-      },
-      onCancel: function() {
-        box.innerText = "Pembayaran dibatalkan.";
-      },
-      onError: function(err) {
-        box.innerText = "Error: " + err.message;
-      }
-    });
-  }
-
-  function muatOrder() {
-    var list = JSON.parse(localStorage.getItem('ls_orders') || '[]');

@@ -224,4 +224,40 @@
         info.txid = txid;
         const list = JSON.parse(localStorage.getItem('ls_orders') || '[]');
         list.unshift(info);
-        localStorage.setItem('ls_orders', JSON.stringify(list));
+        localStorage.setItem('ls_orders', JSON.stringify(        document.getElementById('jml-order').innerText = list.length;
+        box.innerText = "Pembayaran Berhasil! TXID: " + txid;
+        pilihTab('order');
+      },
+      onCancel: function() {
+        box.innerText = "Pembayaran dibatalkan.";
+      },
+      onError: function(err) {
+        box.innerText = "Error: " + err.message;
+      }
+    });
+  }
+
+  function muatOrder() {
+    const list = JSON.parse(localStorage.getItem('ls_orders') || '[]');
+    const wadah = document.getElementById('list-order');
+    if (list.length === 0) {
+      wadah.innerHTML = "Belum ada riwayat pesanan.";
+      return;
+    }
+    let hasil = "";
+    for (let i = 0; i < list.length; i++) {
+      const o = list[i];
+      hasil += '<div class="order-box"><b>' + o.jasa + ' (' + o.dp + ' Pi)</b><br>' +
+               'Mitra: ' + o.mitra + '<br>' +
+               'Pemesan: ' + o.nama + ' (' + o.wa + ')<br>' +
+               'Jadwal: ' + o.tgl + ' | ' + o.alamat +
+               '<span class="txid">TXID: ' + o.txid + '</span></div>';
+    }
+    wadah.innerHTML = hasil;
+  }
+
+  const awal = JSON.parse(localStorage.getItem('ls_orders') || '[]');
+  document.getElementById('jml-order').innerText = awal.length;
+</script>
+</body>
+</html>

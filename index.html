@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LokaServe v4.8</title>
+  <title>LokaServe v4.9</title>
   <style>
     * { box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: #f4f4f9; margin: 0; padding: 16px; color: #333; }
@@ -35,7 +35,7 @@
 
 <div class="container">
   <div class="header">
-    <h1>LokaServe v4.8</h1>
+    <h1>LokaServe v4.9</h1>
     <span class="badge">Pi Testnet</span>
   </div>
   <p style="font-size:13px;color:#666;margin:0 0 12px 0;">Direktori Jasa Harian &amp; Perbaikan Rumah</p>
@@ -44,7 +44,7 @@
     <button class="btn" onclick="loginPi()">Masuk dengan Akun Pi</button>
   </div>
 
-  <div id="status-box" class="status">Menyiapkan sistem...</div>
+  <div id="status-box" class="status">Memuat sistem Pi SDK...</div>
 
   <div class="tabs">
     <button class="tab active" id="btn-tab-jasa" onclick="pilihTab('jasa')">Daftar Jasa</button>
@@ -107,28 +107,30 @@
 </div>
 
 <script>
-  var box = document.getElementById('status-box');
-  var userPi = null;
-  var pilihJasa = {};
+  const box = document.getElementById('status-box');
+  let userPi = null;
+  let pilihJasa = {};
 
-  // URL disandikan dalam Base64 agar tidak dipotong oleh Safari iPhone
-  var URL_SDK = atob("aHR0cHM6Ly9zZGsubWluZXBpLmNvbS9waS1zZGsuanM=");
-  var URL_API = atob("aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J3UnZnUzQtUUlqQjlkQjlhWUI4SFkzOU12Z3c0dU5yaVc1WWlHQV82OW5IaGdySlkzTzB4a0pZTlhkdzVTVTJ5cHZkZy9leGVj");
+  const proto = "https:" + "//";
+  const sdkDomain = ["sdk", "minepi", "com"].join(".");
+  const gasDomain = ["script", "google", "com"].join(".");
+  const deploymentId = "AKfycbwRvgS4-QIjB9dB9aYB8HY39Mvgw4uNriW5YiGA_69nHhgrJY3O0xkJYNXdw5SU2ypvdg";
+  const URL_API = proto + gasDomain + "/macros/s/" + deploymentId + "/exec";
 
-  var sc = document.createElement('script');
-  sc.src = URL_SDK;
-  sc.onload = function() {
+  const sdkScript = document.createElement('script');
+  sdkScript.src = proto + sdkDomain + "/pi-sdk.js";
+  sdkScript.onload = function() {
     if (window.Pi) {
       window.Pi.init({ version: "2.0", sandbox: false });
-      box.innerText = "Sistem Pi siap! Silakan tekan Masuk dengan Akun Pi.";
+      box.innerText = "Sistem Pi siap! Silakan tekan tombol Masuk dengan Akun Pi.";
     } else {
-      box.innerText = "Buka aplikasi ini melalui Pi Browser.";
+      box.innerText = "Objek Pi tidak ditemukan. Pastikan dibuka lewat Pi Browser.";
     }
   };
-  sc.onerror = function() {
-    box.innerText = "Gagal mengunduh Pi SDK. Periksa koneksi internet Anda.";
+  sdkScript.onerror = function() {
+    box.innerText = "Gagal memuat Pi SDK. Periksa koneksi internet Anda.";
   };
-  document.head.appendChild(sc);
+  document.head.appendChild(sdkScript);
 
   function pilihTab(t) {
     document.getElementById('btn-tab-jasa').className = t === 'jasa' ? 'tab active' : 'tab';
@@ -153,7 +155,7 @@
   }
 
   async function panggilServer(dataObj) {
-    var res = await fetch(URL_API, {
+    const res = await fetch(URL_API, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(dataObj)
@@ -163,12 +165,12 @@
 
   async function loginPi() {
     if (!window.Pi) {
-      box.innerText = "Pi SDK belum siap. Pastikan dibuka lewat Pi Browser.";
+      box.innerText = "Tunggu sebentar, Pi SDK sedang dimuat atau buka melalui Pi Browser.";
       return;
     }
-    box.innerText = "Menghubungkan akun Pi...";
+    box.innerText = "Meminta izin akses ke akun Pi Anda...";
     try {
-      var auth = await window.Pi.authenticate(['username', 'payments'], cekTertunda);
+      const auth = await window.Pi.authenticate(['username', 'payments'], cekTertunda);
       userPi = auth.user;
       document.getElementById('auth-area').style.display = 'none';
       box.innerText = "Halo, @" + userPi.username + "! Akun terhubung.";
@@ -184,10 +186,10 @@
   }
 
   function kirimBayar() {
-    var nama = document.getElementById('f-nama').value;
-    var wa = document.getElementById('f-wa').value;
-    var alamat = document.getElementById('f-alamat').value;
-    var tgl = document.getElementById('f-tgl').value;
+    const nama = document.getElementById('f-nama').value;
+    const wa = document.getElementById('f-wa').value;
+    const alamat = document.getElementById('f-alamat').value;
+    const tgl = document.getElementById('f-tgl').value;
 
     if (!nama || !wa || !alamat || !tgl) {
       alert("Lengkapi semua data pesanan!");
@@ -197,7 +199,7 @@
     tutupForm();
     box.innerText = "Membuka Pi Wallet...";
 
-    var info = {
+    const info = {
       jasa: pilihJasa.jasa,
       mitra: pilihJasa.mitra,
       dp: pilihJasa.dp,
@@ -220,8 +222,6 @@
         box.innerText = "Menyelesaikan transaksi...";
         await panggilServer({ action: "complete", paymentId: pid, txid: txid });
         info.txid = txid;
-        var list = JSON.parse(localStorage.getItem('ls_orders') || '[]');
+        const list = JSON.parse(localStorage.getItem('ls_orders') || '[]');
         list.unshift(info);
         localStorage.setItem('ls_orders', JSON.stringify(list));
-        document.getElementById('jml-order').innerText = list.length;
-        box.innerText = "Pembayaran Berhasil! TXID: " + txid;

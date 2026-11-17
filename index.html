@@ -3,178 +3,230 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LokaServe - Direktori Jasa Lokal Pi Network</title>
-  <script>
-    var s = document.createElement('script');
-    s.src = "https:" + "//" + ["sdk", "minepi", "com"].join(".") + "/pi-sdk.js";
-    document.head.appendChild(s);
-  </script>
+  <title>LokaServe v4.6</title>
   <style>
     * { box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f4f9; margin: 0; padding: 16px; color: #333; }
-    .container { max-width: 480px; margin: auto; background: #fff; padding: 20px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 12px; margin-bottom: 12px; }
+    body { font-family: Arial, sans-serif; background: #f4f4f9; margin: 0; padding: 16px; color: #333; }
+    .container { max-width: 480px; margin: auto; background: #fff; padding: 20px; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
     .header h1 { color: #593B8B; font-size: 20px; margin: 0; }
-    .badge-testnet { background: #fff3cd; color: #856404; font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 6px; border: 1px solid #ffeeba; }
-    p.subtitle { color: #666; font-size: 13px; margin: 0 0 14px 0; }
-    
-    .btn { background-color: #593B8B; color: white; border: none; padding: 11px 16px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 14px; font-weight: bold; }
-    .btn:active { background-color: #452c6e; }
-    .btn-outline { background-color: transparent; color: #593B8B; border: 1px solid #593B8B; margin-top: 8px; }
-    
-    .status { background: #eef6ff; padding: 10px 12px; border-radius: 8px; font-size: 12.5px; margin-bottom: 14px; color: #004085; word-break: break-word; border-left: 4px solid #007bff; }
-    
-    .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
-    .tab-btn { flex: 1; padding: 10px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 8px; font-weight: bold; font-size: 13px; color: #555; cursor: pointer; }
-    .tab-btn.active { background: #593B8B; color: #fff; border-color: #593B8B; }
-    
-    .filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; }
-    .pill { padding: 6px 12px; border-radius: 20px; font-size: 12px; background: #eee; color: #444; border: none; cursor: pointer; white-space: nowrap; }
-    .pill.active { background: #f3c623; color: #222; font-weight: bold; }
-
+    .badge { background: #fff3cd; color: #856404; font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 6px; }
+    .btn { background: #593B8B; color: #fff; border: none; padding: 11px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 14px; font-weight: bold; margin-top: 8px; }
+    .btn-outline { background: #fff; color: #593B8B; border: 1px solid #593B8B; }
+    .status { background: #eef6ff; padding: 10px; border-radius: 8px; font-size: 12.5px; margin: 12px 0; color: #004085; border-left: 4px solid #007bff; word-break: break-word; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+    .tab { flex: 1; padding: 9px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; }
+    .tab.active { background: #593B8B; color: #fff; }
     .card { border: 1px solid #e2e2e8; border-radius: 10px; padding: 14px; margin-bottom: 12px; background: #fafafa; }
-    .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
-    .card h3 { margin: 0 0 4px 0; font-size: 15px; color: #222; }
-    .rating { font-size: 12px; color: #d97706; font-weight: bold; }
-    .provider { font-size: 12px; color: #593B8B; font-weight: 600; margin-bottom: 6px; }
-    .card p { margin: 0 0 10px 0; font-size: 12.5px; color: #555; line-height: 1.4; }
-    .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; }
-    .price-tag { font-weight: bold; color: #16a34a; }
-
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center; padding: 16px; }
-    .modal-box { background: #fff; width: 100%; max-width: 420px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .modal-box h3 { margin-top: 0; color: #593B8B; font-size: 17px; }
-    .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #444; }
-    .form-group input, .form-group textarea { width: 100%; padding: 9px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px; font-family: inherit; }
-    
-    .order-item { border: 1px solid #d1e7dd; background: #f8fffb; border-radius: 8px; padding: 12px; margin-bottom: 10px; font-size: 12.5px; }
-    .order-status { display: inline-block; background: #198754; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: bold; margin-bottom: 6px; }
-    .txid-text { font-family: monospace; font-size: 11px; color: #555; background: #eee; padding: 4px 6px; border-radius: 4px; display: block; margin-top: 6px; word-break: break-all; }
+    .card h3 { margin: 0 0 4px 0; font-size: 15px; }
+    .mitra { font-size: 12px; color: #593B8B; font-weight: bold; margin-bottom: 6px; }
+    .card p { margin: 0 0 8px 0; font-size: 12.5px; color: #555; }
+    .harga { font-weight: bold; color: #16a34a; font-size: 13px; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99; align-items: center; justify-content: center; padding: 16px; }
+    .modal-box { background: #fff; width: 100%; max-width: 400px; border-radius: 12px; padding: 18px; }
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; }
+    .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px; }
+    .order-box { border: 1px solid #d1e7dd; background: #f8fffb; border-radius: 8px; padding: 12px; margin-bottom: 10px; font-size: 12.5px; }
+    .txid { font-family: monospace; font-size: 11px; background: #eee; padding: 4px; border-radius: 4px; display: block; margin-top: 6px; word-break: break-all; }
   </style>
 </head>
 <body>
 
 <div class="container">
   <div class="header">
-    <h1>LokaServe v4.5</h1>
-    <span class="badge-testnet">Pi Testnet</span>
+    <h1>LokaServe v4.6</h1>
+    <span class="badge">Pi Testnet</span>
   </div>
-  <p class="subtitle">Direktori Jasa Harian & Perbaikan Rumah Terpercaya</p>
+  <p style="font-size:13px;color:#666;margin:0 0 12px 0;">Direktori Jasa Harian &amp; Perbaikan Rumah</p>
 
-  <div id="auth-section" style="margin-bottom: 12px;">
+  <div id="auth-area">
     <button class="btn" onclick="loginPi()">Masuk dengan Akun Pi</button>
   </div>
 
-  <div id="user-info" class="status">Menyiapkan sistem Pi SDK...</div>
+  <div id="status-box" class="status">Memuat aplikasi...</div>
 
   <div class="tabs">
-    <button class="tab-btn active" id="tab-layanan" onclick="gantiTab('layanan')">Daftar Jasa</button>
-    <button class="tab-btn" id="tab-pesanan" onclick="gantiTab('pesanan')">Pesanan Saya (<span id="order-count">0</span>)</button>
+    <button class="tab active" id="btn-tab-jasa" onclick="pilihTab('jasa')">Daftar Jasa</button>
+    <button class="tab" id="btn-tab-order" onclick="pilihTab('order')">Pesanan Saya (<span id="jml-order">0</span>)</button>
   </div>
 
-  <div id="view-layanan">
-    <div class="filters">
-      <button class="pill active" onclick="filterKategori('Semua', this)">Semua</button>
-      <button class="pill" onclick="filterKategori('Elektronik', this)">Elektronik</button>
-      <button class="pill" onclick="filterKategori('Bangunan', this)">Bangunan</button>
-      <button class="pill" onclick="filterKategori('Kebersihan', this)">Kebersihan</button>
+  <div id="area-jasa">
+    <div class="card">
+      <h3>Servis &amp; Cuci AC Panggilan</h3>
+      <div class="mitra">Mitra: Teknisi Sejuk Mandiri (★ 4.9)</div>
+      <p>Pembersihan unit indoor/outdoor, cek tekanan freon, dan perbaikan bocor.</p>
+      <div class="harga">Booking DP: 0.5 Test-Pi</div>
+      <button class="btn" onclick="bukaForm('Servis & Cuci AC', 'Teknisi Sejuk Mandiri', 0.5)">Pesan Jasa (0.5 Pi)</button>
     </div>
 
-    <div id="service-list"></div>
+    <div class="card">
+      <h3>Jasa Tukang &amp; Perbaikan Ringan</h3>
+      <div class="mitra">Mitra: Karya Tukang Lokal (★ 4.8)</div>
+      <p>Perbaikan pipa bocor, kelistrikan dasar, perbaikan atap, dan cat dinding.</p>
+      <div class="harga">Booking DP: 1.0 Test-Pi</div>
+      <button class="btn" onclick="bukaForm('Jasa Tukang Harian', 'Karya Tukang Lokal', 1.0)">Pesan Jasa (1.0 Pi)</button>
+    </div>
+
+    <div class="card">
+      <h3>Deep Cleaning Rumah &amp; Kos</h3>
+      <div class="mitra">Mitra: BersihKilat Homecare (★ 4.9)</div>
+      <p>Pembersihan menyeluruh kamar mandi, dapur, kaca jendela, dan lantai.</p>
+      <div class="harga">Booking DP: 0.5 Test-Pi</div>
+      <button class="btn" onclick="bukaForm('Deep Cleaning Rumah', 'BersihKilat Homecare', 0.5)">Pesan Jasa (0.5 Pi)</button>
+    </div>
   </div>
 
-  <div id="view-pesanan" style="display: none;">
-    <div id="order-list">
-      <p style="text-align: center; color: #777; font-size: 13px; padding: 20px 0;">Belum ada riwayat pesanan jasa.</p>
-    </div>
+  <div id="area-order" style="display:none;">
+    <div id="list-order">Belum ada riwayat pesanan.</div>
   </div>
 </div>
 
-<div class="modal-overlay" id="booking-modal">
+<div class="modal" id="modal-form">
   <div class="modal-box">
-    <h3 id="modal-title">Form Pemesanan Jasa</h3>
-    <p id="modal-subtitle" style="font-size: 12.5px; color: #666; margin-top: -8px; margin-bottom: 14px;"></p>
-    
+    <h3 id="judul-modal" style="margin-top:0;color:#593B8B;">Form Pemesanan</h3>
     <div class="form-group">
-      <label>Nama Lengkap Pemesan</label>
-      <input type="text" id="input-nama" placeholder="Contoh: Budi Santoso">
+      <label>Nama Lengkap</label>
+      <input type="text" id="f-nama" placeholder="Nama Anda">
     </div>
     <div class="form-group">
-      <label>Nomor WhatsApp Aktif</label>
-      <input type="tel" id="input-wa" placeholder="Contoh: 081234567890">
+      <label>Nomor WhatsApp</label>
+      <input type="tel" id="f-wa" placeholder="08123456789">
     </div>
     <div class="form-group">
-      <label>Alamat Lengkap Kunjungan</label>
-      <textarea id="input-alamat" rows="2" placeholder="Masukkan nama jalan, nomor rumah, dan patokan..."></textarea>
+      <label>Alamat Lengkap</label>
+      <textarea id="f-alamat" rows="2" placeholder="Alamat rumah / patokan"></textarea>
     </div>
     <div class="form-group">
       <label>Tanggal Kunjungan</label>
-      <input type="date" id="input-tanggal">
+      <input type="date" id="f-tgl">
     </div>
-
-    <button class="btn" onclick="prosesBayarForm()">Lanjut Bayar DP via Pi Wallet</button>
-    <button class="btn btn-outline" onclick="tutupModal()">Batal</button>
+    <button class="btn" onclick="kirimBayar()">Bayar DP via Pi Wallet</button>
+    <button class="btn btn-outline" onclick="tutupForm()">Batal</button>
   </div>
 </div>
 
 <script>
-  var statusBox = document.getElementById('user-info');
-  var currentUser = null;
-  var jasaDipilih = null;
+  var box = document.getElementById('status-box');
+  var userPi = null;
+  var pilihJasa = {};
 
-  var proto = "https:" + "//";
-  var gasHost = ["script", "google", "com"].join(".");
-  var depId = "AKfycbwRvgS4-QIjB9dB9aYB8HY39Mvgw4uNriW5YiGA_69nHhgrJY3O0xkJYNXdw5SU2ypvdg";
-  var BACKEND_URL = proto + gasHost + "/macros/s/" + depId + "/exec";
+  var p = "https:" + "//";
+  var hSdk = ["sdk", "minepi", "com"].join(".");
+  var hGas = ["script", "google", "com"].join(".");
+  var dId = "AKfycbwRvgS4-QIjB9dB9aYB8HY39Mvgw4uNriW5YiGA_69nHhgrJY3O0xkJYNXdw5SU2ypvdg";
+  var URL_API = p + hGas + "/macros/s/" + dId + "/exec";
 
-  var daftarJasa = [
-    { id: 1, nama: "Servis & Cuci AC Panggilan", kategori: "Elektronik", mitra: "Teknisi Sejuk Mandiri", rating: "4.9 (124 ulasan)", deskripsi: "Pembersihan unit indoor/outdoor, pengecekan tekanan freon, dan perbaikan kebocoran air.", dp: 0.5 },
-    { id: 2, nama: "Jasa Tukang & Perbaikan Ringan", kategori: "Bangunan", mitra: "Karya Tukang Lokal", rating: "4.8 (89 ulasan)", deskripsi: "Perbaikan pipa bocor, instalasi saklar/lampu dasar, perbaikan atap, dan pengecatan dinding.", dp: 1.0 },
-    { id: 3, nama: "Deep Cleaning Rumah & Kos", kategori: "Kebersihan", mitra: "BersihKilat Homecare", rating: "4.9 (67 ulasan)", deskripsi: "Pembersihan menyeluruh kamar mandi, dapur, kaca jendela, dan lantai bebas kerak.", dp: 0.5 },
-    { id: 4, nama: "Perbaikan Mesin Cuci & Kulkas", kategori: "Elektronik", mitra: "Adi Jaya Elektronik", rating: "4.7 (52 ulasan)", deskripsi: "Pengecekan modul, penggantian sparepart, dan perbaikan sistem pendingin di tempat.", dp: 0.5 }
-  ];
+  var sc = document.createElement('script');
+  sc.src = p + hSdk + "/pi-sdk.js";
+  sc.onload = function() {
+    if (window.Pi) {
+      window.Pi.init({ version: "2.0", sandbox: false });
+      box.innerText = "Sistem Pi siap! Silakan tekan Masuk dengan Akun Pi.";
+    } else {
+      box.innerText = "Buka aplikasi ini melalui Pi Browser.";
+    }
+  };
+  document.head.appendChild(sc);
 
-  function renderJasa(kategori) {
-    var container = document.getElementById('service-list');
-    container.innerHTML = "";
-    for (var i = 0; i < daftarJasa.length; i++) {
-      var jasa = daftarJasa[i];
-      if (kategori !== 'Semua' && jasa.kategori !== kategori) continue;
-      container.innerHTML +=
-        '<div class="card">' +
-          '<div class="card-top">' +
-            '<h3>' + jasa.nama + '</h3>' +
-            '<span class="rating">★ ' + jasa.rating + '</span>' +
-          '</div>' +
-          '<div class="provider">Mitra: ' + jasa.mitra + '</div>' +
-          '<p>' + jasa.deskripsi + '</p>' +
-          '<div class="price-row">' +
-            '<span>Biaya Booking (DP):</span>' +
-            '<span class="price-tag">' + jasa.dp + ' Test-Pi</span>' +
-          '</div>' +
-          '<button class="btn" onclick="bukaModal(' + jasa.id + ')">Pesan Jasa (' + jasa.dp + ' Pi)</button>' +
-        '</div>';
+  function pilihTab(t) {
+    document.getElementById('btn-tab-jasa').className = t === 'jasa' ? 'tab active' : 'tab';
+    document.getElementById('btn-tab-order').className = t === 'order' ? 'tab active' : 'tab';
+    document.getElementById('area-jasa').style.display = t === 'jasa' ? 'block' : 'none';
+    document.getElementById('area-order').style.display = t === 'order' ? 'block' : 'none';
+    if (t === 'order') muatOrder();
+  }
+
+  function bukaForm(namaJasa, namaMitra, nilaiDp) {
+    if (!userPi) {
+      box.innerText = "Silakan tekan 'Masuk dengan Akun Pi' terlebih dahulu.";
+      return;
+    }
+    pilihJasa = { jasa: namaJasa, mitra: namaMitra, dp: nilaiDp };
+    document.getElementById('judul-modal').innerText = namaJasa + " (" + nilaiDp + " Pi)";
+    document.getElementById('modal-form').style.display = 'flex';
+  }
+
+  function tutupForm() {
+    document.getElementById('modal-form').style.display = 'none';
+  }
+
+  async function panggilServer(dataObj) {
+    var res = await fetch(URL_API, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(dataObj)
+    });
+    return await res.json();
+  }
+
+  async function loginPi() {
+    if (!window.Pi) {
+      box.innerText = "Pi SDK belum siap. Pastikan dibuka lewat Pi Browser.";
+      return;
+    }
+    box.innerText = "Menghubungkan akun Pi...";
+    try {
+      var auth = await window.Pi.authenticate(['username', 'payments'], cekTertunda);
+      userPi = auth.user;
+      document.getElementById('auth-area').style.display = 'none';
+      box.innerText = "Halo, @" + userPi.username + "! Akun terhubung.";
+    } catch (e) {
+      box.innerText = "Gagal login: " + e.message;
     }
   }
 
-  function filterKategori(kategori, btnElement) {
-    var pills = document.querySelectorAll('.pill');
-    for (var i = 0; i < pills.length; i++) {
-      pills[i].classList.remove('active');
+  function cekTertunda(pay) {
+    if (pay.transaction && pay.transaction.txid) {
+      panggilServer({ action: "complete", paymentId: pay.identifier, txid: pay.transaction.txid });
     }
-    btnElement.classList.add('active');
-    renderJasa(kategori);
   }
 
-  function gantiTab(tab) {
-    document.getElementById('tab-layanan').classList.toggle('active', tab === 'layanan');
-    document.getElementById('tab-pesanan').classList.toggle('active', tab === 'pesanan');
-    document.getElementById('view-layanan').style.display = tab === 'layanan' ? 'block' : 'none';
-    document.getElementById('view-pesanan').style.display = tab === 'pesanan' ? 'block' : 'none';
-    if (tab === 'pesanan') renderRiwayat();
-  }
+  function kirimBayar() {
+    var nama = document.getElementById('f-nama').value;
+    var wa = document.getElementById('f-wa').value;
+    var alamat = document.getElementById('f-alamat').value;
+    var tgl = document.getElementById('f-tgl').value;
 
-  function bukaModal(idJasa) {
-    if (!currentUser) {
-      statusBox.innerText = "Silakan tekan 'Masuk dengan Akun Pi' terlebih dahulu sebelum memesan jasa.";
+    if (!nama || !wa || !alamat || !tgl) {
+      alert("Lengkapi semua data pesanan!");
+      return;
+    }
+
+    tutupForm();
+    box.innerText = "Membuka Pi Wallet...";
+
+    var info = {
+      jasa: pilihJasa.jasa,
+      mitra: pilihJasa.mitra,
+      dp: pilihJasa.dp,
+      nama: nama,
+      wa: wa,
+      alamat: alamat,
+      tgl: tgl
+    };
+
+    window.Pi.createPayment({
+      amount: pilihJasa.dp,
+      memo: "DP " + pilihJasa.jasa,
+      metadata: info
+    }, {
+      onReadyForServerApproval: async function(pid) {
+        box.innerText = "Menyetujui pembayaran...";
+        await panggilServer({ action: "approve", paymentId: pid });
+      },
+      onReadyForServerCompletion: async function(pid, txid) {
+        box.innerText = "Menyelesaikan transaksi...";
+        await panggilServer({ action: "complete", paymentId: pid, txid: txid });
+        info.txid = txid;
+        var list = JSON.parse(localStorage.getItem('ls_orders') || '[]');
+        list.unshift(info);
+        localStorage.setItem('ls_orders', JSON.stringify(list));
+        document.getElementById('jml-order').innerText = list.length;
+        box.innerText = "Pembayaran Berhasil! TXID: " + txid;
+        pilihTab('order');
+      },
+      onCancel: function() {
+        box.innerText = "Pembayaran dibatalkan.";
+      },
+      onError: function(err) {

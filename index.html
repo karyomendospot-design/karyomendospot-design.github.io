@@ -110,7 +110,6 @@
   var box = document.getElementById('status-box');
   var userPi = null;
   var pilihJasa = {};
-
   var p = "https:" + "//";
   var hSdk = ["sdk", "minepi", "com"].join(".");
   var hGas = ["script", "google", "com"].join(".");
@@ -128,6 +127,7 @@
     }
   };
   document.head.appendChild(sc);
+
 
   function pilihTab(t) {
     document.getElementById('btn-tab-jasa').className = t === 'jasa' ? 'tab active' : 'tab';

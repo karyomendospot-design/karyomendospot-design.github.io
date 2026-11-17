@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LokaServe v4.6</title>
+  <title>LokaServe v4.7</title>
+  <script src="https://minepi.com"></script>
   <style>
     * { box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: #f4f4f9; margin: 0; padding: 16px; color: #333; }
@@ -35,7 +36,7 @@
 
 <div class="container">
   <div class="header">
-    <h1>LokaServe v4.6</h1>
+    <h1>LokaServe v4.7</h1>
     <span class="badge">Pi Testnet</span>
   </div>
   <p style="font-size:13px;color:#666;margin:0 0 12px 0;">Direktori Jasa Harian &amp; Perbaikan Rumah</p>
@@ -110,24 +111,17 @@
   var box = document.getElementById('status-box');
   var userPi = null;
   var pilihJasa = {};
-  var p = "https:" + "//";
-  var hSdk = ["sdk", "minepi", "com"].join(".");
-  var hGas = ["script", "google", "com"].join(".");
-  var dId = "AKfycbwRvgS4-QIjB9dB9aYB8HY39Mvgw4uNriW5YiGA_69nHhgrJY3O0xkJYNXdw5SU2ypvdg";
-  var URL_API = p + hGas + "/macros/s/" + dId + "/exec";
 
-  var sc = document.createElement('script');
-  sc.src = p + hSdk + "/pi-sdk.js";
-  sc.onload = function() {
+  var URL_API = "https://google.com";
+
+  window.onload = function() {
     if (window.Pi) {
       window.Pi.init({ version: "2.0", sandbox: false });
       box.innerText = "Sistem Pi siap! Silakan tekan Masuk dengan Akun Pi.";
     } else {
-      box.innerText = "Buka aplikasi ini melalui Pi Browser.";
+      box.innerText = "Pi SDK tidak terdeteksi. Pastikan dibuka lewat Pi Browser.";
     }
   };
-  document.head.appendChild(sc);
-
 
   function pilihTab(t) {
     document.getElementById('btn-tab-jasa').className = t === 'jasa' ? 'tab active' : 'tab';
@@ -230,3 +224,10 @@
         box.innerText = "Pembayaran dibatalkan.";
       },
       onError: function(err) {
+        box.innerText = "Error: " + err.message;
+      }
+    });
+  }
+
+  function muatOrder() {
+    var list = JSON.parse(localStorage.getItem('ls_orders') || '[]');

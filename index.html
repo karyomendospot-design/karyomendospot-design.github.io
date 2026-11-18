@@ -155,3 +155,24 @@ function bayar(){
   var inf={j:sel.j,mt:sel.mt,dp:sel.dp,fn:fn,fw:fw,fa:fa,ft:ft};
   window.Pi.createPayment({amount:sel.dp,memo:"DP "+sel.j,metadata:inf},{
     onReadyForServerApproval:async function(pid){m.innerText="Menyetujui...";await post({action:"approve",paymentId:pid})},
+    onReadyForServerCompletion:async function(pid,tx){
+      m.innerText="Menyelesaikan...";await post({action:"complete",paymentId:pid,txid:tx});
+      inf.tx=tx;var l=JSON.parse(localStorage.getItem('ls_o')||'[]');l.unshift(inf);localStorage.setItem('ls_o',JSON.stringify(l));
+      document.getElementById('cnt').innerText=l.length;m.innerText="Berhasil! TXID: "+tx;setTab(2);
+    },
+    onCancel:function(){m.innerText="Pembayaran dibatalkan."},
+    onError:function(e){m.innerText="Error: "+e.message}
+  });
+}
+function render(){
+  var l=JSON.parse(localStorage.getItem('ls_o')||'[]'),w=document.getElementById('list');
+  if(!l.length){w.innerHTML="Belum ada riwayat pesanan.";return}
+  var h="";for(var i=0;i<l.length;i++){var o=l[i];h+='<div class="ord"><b>'+o.j+' ('+o.dp+' Pi)</b><br>Mitra: '+o.mt+'<br>Pemesan: '+o.fn+' ('+o.fw+')<br>Jadwal: '+o.ft+' | '+o.fa+'<span class="tx">TXID: '+o.tx+'</span></div>'}
+  w.innerHTML=h;
+}
+muatMitra();
+document.getElementById('cnt').innerText=JSON.parse(localStorage.getItem('ls_o')||'[]').length;
+</script>
+</body>
+</html>
+    

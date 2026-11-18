@@ -224,7 +224,8 @@
         info.txid = txid;
         const list = JSON.parse(localStorage.getItem('ls_orders') || '[]');
         list.unshift(info);
-        localStorage.setItem('ls_orders', JSON.stringify(        document.getElementById('jml-order').innerText = list.length;
+        localStorage.setItem('ls_orders', JSON.stringify(       
+          document.getElementById('jml-order').innerText = list.length;
         box.innerText = "Pembayaran Berhasil! TXID: " + txid;
         pilihTab('order');
       },

@@ -4,6 +4,7 @@
 
 ## Live Demo & Ecosystem Links
 - **Live Application (Open via Pi Browser):** `https://github.io`
+- **Privacy Policy & Terms of Service:** `https://github.io/privacy.html`
 - **Network Environment:** Pi Testnet
 
 ## Key Features

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LokaServe v5.0</title>
+<title>LokaServe v5.1</title>
 <style>
 *{box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f4f4f9;margin:0;padding:16px;color:#333}
 .box{max-width:480px;margin:auto;background:#fff;padding:18px;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
@@ -11,8 +11,9 @@
 h1{color:#593B8B;font-size:20px;margin:0}.tag{background:#fff3cd;color:#856404;font-size:11px;font-weight:bold;padding:4px 8px;border-radius:6px}
 .btn{background:#593B8B;color:#fff;border:none;padding:11px;border-radius:8px;cursor:pointer;width:100%;font-size:14px;font-weight:bold;margin-top:8px}
 .btn2{background:#fff;color:#593B8B;border:1px solid #593B8B}
+.btn-share{background:#f3c623;color:#222;margin-top:6px;font-size:13px;padding:9px}
 .info{background:#eef6ff;padding:10px;border-radius:8px;font-size:12.5px;margin:12px 0;color:#004085;border-left:4px solid #007bff;word-break:break-word}
-.tabs{display:flex;gap:8px;margin-bottom:12px}.tab{flex:1;padding:9px;border:1px solid #ddd;background:#f8f9fa;border-radius:8px;font-weight:bold;font-size:13px;cursor:pointer}
+.tabs{display:flex;gap:6px;margin-bottom:12px}.tab{flex:1;padding:9px 4px;border:1px solid #ddd;background:#f8f9fa;border-radius:8px;font-weight:bold;font-size:12px;cursor:pointer}
 .tab.on{background:#593B8B;color:#fff}
 .card{border:1px solid #e2e2e8;border-radius:10px;padding:14px;margin-bottom:12px;background:#fafafa}
 .card h3{margin:0 0 4px;font-size:15px}.mitra{font-size:12px;color:#593B8B;font-weight:bold;margin-bottom:6px}
@@ -20,22 +21,29 @@ h1{color:#593B8B;font-size:20px;margin:0}.tag{background:#fff3cd;color:#856404;f
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;align-items:center;justify-content:center;padding:16px}
 .m-in{background:#fff;width:100%;max-width:400px;border-radius:12px;padding:18px}
 .fg{margin-bottom:10px}.fg label{display:block;font-size:12px;font-weight:bold;margin-bottom:4px}
-.fg input,.fg textarea{width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px}
+.fg input,.fg textarea,.fg select{width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px}
 .ord{border:1px solid #d1e7dd;background:#f8fffb;border-radius:8px;padding:12px;margin-bottom:10px;font-size:12.5px}
 .tx{font-family:monospace;font-size:11px;background:#eee;padding:4px;border-radius:4px;display:block;margin-top:6px;word-break:break-all}
 </style>
 </head>
 <body>
 <div class="box">
-  <div class="top"><h1>LokaServe v5.0</h1><span class="tag">Pi Testnet</span></div>
-  <p style="font-size:13px;color:#666;margin:0 0 12px">Direktori Jasa Harian &amp; Perbaikan Rumah</p>
+  <div class="top"><h1>LokaServe v5.1</h1><span class="tag">Pi Testnet</span></div>
+  <p style="font-size:13px;color:#666;margin:0 0 10px">Direktori Jasa Harian &amp; Perbaikan Rumah</p>
+  
   <div id="auth-box"><button class="btn" onclick="loginPi()">Masuk dengan Akun Pi</button></div>
+  <button class="btn btn-share" onclick="bagikanApp()">Bagikan LokaServe ke Pioneer Lain</button>
+  
   <div id="msg" class="info">Memuat sistem Pi SDK...</div>
+  
   <div class="tabs">
     <button class="tab on" id="t1" onclick="setTab(1)">Daftar Jasa</button>
-    <button class="tab" id="t2" onclick="setTab(2)">Pesanan Saya (<span id="cnt">0</span>)</button>
+    <button class="tab" id="t2" onclick="setTab(2)">Pesanan (<span id="cnt">0</span>)</button>
+    <button class="tab" id="t3" onclick="setTab(3)">Jadi Mitra</button>
   </div>
+
   <div id="p1">
+    <div id="extra-jasa"></div>
     <div class="card">
       <h3>Servis &amp; Cuci AC Panggilan</h3>
       <div class="mitra">Mitra: Teknisi Sejuk Mandiri (★ 4.9)</div>
@@ -58,7 +66,20 @@ h1{color:#593B8B;font-size:20px;margin:0}.tag{background:#fff3cd;color:#856404;f
       <button class="btn" onclick="buka('Deep Cleaning Rumah','BersihKilat Homecare',0.5)">Pesan Jasa (0.5 Pi)</button>
     </div>
   </div>
+
   <div id="p2" style="display:none"><div id="list">Belum ada riwayat pesanan.</div></div>
+
+  <div id="p3" style="display:none">
+    <div class="card">
+      <h3>Daftar Penyedia Jasa Lokal</h3>
+      <p>Buka peluang penghasilan Pi dengan menawarkan keahlian jasa Anda kepada Pioneer sekitar.</p>
+      <div class="fg"><label>Nama Usaha / Teknisi</label><input id="mn" placeholder="Contoh: Berkah Servis Elektronik"></div>
+      <div class="fg"><label>Jenis Layanan Jasa</label><input id="mj" placeholder="Contoh: Servis Pompa Air & Listrik"></div>
+      <div class="fg"><label>Deskripsi Singkat Layanan</label><textarea id="md" rows="2" placeholder="Jelaskan area layanan & keahlian..."></textarea></div>
+      <div class="fg"><label>Biaya Booking DP (Test-Pi)</label><select id="mp"><option value="0.5">0.5 Test-Pi</option><option value="1.0">1.0 Test-Pi</option></select></div>
+      <button class="btn" onclick="daftarMitra()">Publikasikan Jasa ke Direktori</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal" id="mod">
@@ -78,6 +99,8 @@ var m=document.getElementById('msg'),u=null,sel={};
 var pr="https:"+"//",d1=["sdk","minepi","com"].join("."),d2=["script","google","com"].join(".");
 var id="AKfycbwRvgS4-QIjB9dB9aYB8HY39Mvgw4uNriW5YiGA_69nHhgrJY3O0xkJYNXdw5SU2ypvdg";
 var API=pr+d2+"/macros/s/"+id+"/exec";
+var PINET=pr+["lokaserve1821","pinet","com"].join(".");
+
 var s=document.createElement('script');
 s.src=pr+d1+"/pi-sdk.js";
 s.onload=function(){if(window.Pi){window.Pi.init({version:"2.0",sandbox:false});m.innerText="Sistem Pi siap! Silakan tekan Masuk dengan Akun Pi."}else{m.innerText="Buka lewat Pi Browser."}};
@@ -87,9 +110,30 @@ document.head.appendChild(s);
 function setTab(n){
   document.getElementById('t1').className=n==1?'tab on':'tab';
   document.getElementById('t2').className=n==2?'tab on':'tab';
+  document.getElementById('t3').className=n==3?'tab on':'tab';
   document.getElementById('p1').style.display=n==1?'block':'none';
   document.getElementById('p2').style.display=n==2?'block':'none';
+  document.getElementById('p3').style.display=n==3?'block':'none';
   if(n==2)render();
+}
+function bagikanApp(){
+  var ref=u?PINET+"?ref="+u.username:PINET;
+  if(navigator.clipboard){navigator.clipboard.writeText(ref)}
+  m.innerText="Tautan rujukan PiNet disalin: "+ref+" — Bagikan ke Pioneer lain!";
+}
+function daftarMitra(){
+  var mn=document.getElementById('mn').value,mj=document.getElementById('mj').value,md=document.getElementById('md').value,mp=parseFloat(document.getElementById('mp').value);
+  if(!mn||!mj||!md){alert("Lengkapi profil layanan jasa Anda!");return}
+  var ml=JSON.parse(localStorage.getItem('ls_m')||'[]');
+  ml.unshift({mn:mn,mj:mj,md:md,mp:mp});
+  localStorage.setItem('ls_m',JSON.stringify(ml));
+  document.getElementById('mn').value="";document.getElementById('mj').value="";document.getElementById('md').value="";
+  muatMitra();m.innerText="Layanan '"+mj+"' berhasil ditambahkan ke direktori!";setTab(1);
+}
+function muatMitra(){
+  var ml=JSON.parse(localStorage.getItem('ls_m')||'[]'),w=document.getElementById('extra-jasa');
+  var h="";for(var i=0;i<ml.length;i++){var x=ml[i];h+='<div class="card"><h3>'+x.mj+'</h3><div class="mitra">Mitra: '+x.mn+' (Baru)</div><p>'+x.md+'</p><div class="dp">Booking DP: '+x.mp+' Test-Pi</div><button class="btn" onclick="buka(\''+x.mj+'\',\''+x.mn+'\','+x.mp+')">Pesan Jasa ('+x.mp+' Pi)</button></div>'}
+  w.innerHTML=h;
 }
 function buka(j,mt,dp){
   if(!u){m.innerText="Silakan tekan Masuk dengan Akun Pi dulu.";return}
@@ -111,22 +155,3 @@ function bayar(){
   var inf={j:sel.j,mt:sel.mt,dp:sel.dp,fn:fn,fw:fw,fa:fa,ft:ft};
   window.Pi.createPayment({amount:sel.dp,memo:"DP "+sel.j,metadata:inf},{
     onReadyForServerApproval:async function(pid){m.innerText="Menyetujui...";await post({action:"approve",paymentId:pid})},
-    onReadyForServerCompletion:async function(pid,tx){
-      m.innerText="Menyelesaikan...";await post({action:"complete",paymentId:pid,txid:tx});
-      inf.tx=tx;var l=JSON.parse(localStorage.getItem('ls_o')||'[]');l.unshift(inf);localStorage.setItem('ls_o',JSON.stringify(l));
-      document.getElementById('cnt').innerText=l.length;m.innerText="Berhasil! TXID: "+tx;setTab(2);
-    },
-    onCancel:function(){m.innerText="Pembayaran dibatalkan."},
-    onError:function(e){m.innerText="Error: "+e.message}
-  });
-}
-function render(){
-  var l=JSON.parse(localStorage.getItem('ls_o')||'[]'),w=document.getElementById('list');
-  if(!l.length){w.innerHTML="Belum ada riwayat pesanan.";return}
-  var h="";for(var i=0;i<l.length;i++){var o=l[i];h+='<div class="ord"><b>'+o.j+' ('+o.dp+' Pi)</b><br>Mitra: '+o.mt+'<br>Pemesan: '+o.fn+' ('+o.fw+')<br>Jadwal: '+o.ft+' | '+o.fa+'<span class="tx">TXID: '+o.tx+'</span></div>'}
-  w.innerHTML=h;
-}
-document.getElementById('cnt').innerText=JSON.parse(localStorage.getItem('ls_o')||'[]').length;
-</script>
-</body>
-</html>
